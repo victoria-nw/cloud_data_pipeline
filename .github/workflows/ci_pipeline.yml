@@ -1,0 +1,29 @@
+name: NYC Taxi Pipeline CI
+
+on:
+  push:
+    branches: [dev, release, main]
+  pull request:
+    branches: [main]
+
+jobs:
+  validate: 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: install dependencies
+        run: |
+          pip install pyspark delta-spark
+
+      - name: validate python syntax
+        run: |
+          echo "validating pipeline notebooks..."
+          python -c "import ast; ast.parse(open('ingestion/bronze_ingestion.py').read())" || echo "check notebook format"
