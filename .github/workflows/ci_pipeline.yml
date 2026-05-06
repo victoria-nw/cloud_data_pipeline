@@ -21,9 +21,22 @@ jobs:
 
       - name: install dependencies
         run: |
-          pip install pyspark delta-spark
+          pip install pyspark delta-spark databricks_cli
 
       - name: validate python syntax
         run: |
           echo "validating pipeline notebooks..."
           python -c "import ast; ast.parse(open('ingestion/bronze_ingestion.py').read())" || echo "check notebook format"
+          echo "validation complete"
+
+      - name: configure databricks_cli
+        run: |
+          databricks configure --token <<EOF
+          ${{ secrets.DATABRICKS_HOST }}
+          ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      - name: list databricks workspace
+        run: |
+          databricks workspace list /
+
