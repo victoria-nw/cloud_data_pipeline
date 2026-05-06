@@ -1,0 +1,84 @@
+name: NYC taxi pipeline cd 
+
+on:
+  push:
+    branches: [release, main]
+
+jobs:
+  deploy-qa:
+    runs-on: ubuntu-latest
+    environment: qa
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: install databricks cli 
+        run: pip install databricks-cli
+
+      - name: configure databricks_cli
+        run: |
+          databricks configure --token <<EOF
+          ${{ secrets.DATABRICKS_HOST }}
+          ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      - name: deploy to qa
+        run: |
+          echo "deploying to qa environment ..."
+          databricks workspace list /
+          echo "qa deployment complete"
+
+      - name: log deployment
+        run: |
+          echo "deployment log: $(date)" >> deployment.log
+          echo "environment : qa" >> deployment.log
+          echo "branch: ${{ github.ref }}" >> deployment.log
+          cat deployment.log
+
+      
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: prod
+    needs: deploy-qa
+
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: install databricks cli 
+        run: pip install databricks-cli
+
+      - name: configure databricks_cli
+        run: |
+          databricks configure --token <<EOF
+          ${{ secrets.DATABRICKS_HOST }}
+          ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      - name: deploy to production
+        run: |
+          echo "deploying to production environment ..."
+          databricks workspace list /
+          echo "production deployment complete"
+
+      - name: log deployment
+        run: |
+          echo "deployment log: $(date)" >> deployment.log
+          echo "environment : prod" >> deployment.log
+          echo "branch: ${{ github.ref }}" >> deployment.log
+          cat deployment.log
+
+
+
+
